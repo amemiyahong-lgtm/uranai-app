@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>姓名判断・相性診断 | 運命の紐解き</title>
+<style>
+  :root{
+    --gold:#d4af37; --gold-light:#f5d67b; --gold-pale:#ffe9a8;
+    --vermillion:#d43a2a; --vermillion-light:#e8573f;
+    --ink:#0e0a20; --card:#1c1533; --card2:#241a42;
+    --paper:#f7efdb; --text:#efe8d8; --muted:#b9aed6;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; min-height:100vh; color:var(--text);
+    font-family:"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif;
+    background:
+      radial-gradient(circle at 15% 20%, rgba(212,175,55,.14) 0 2px, transparent 3px),
+      radial-gradient(circle at 85% 70%, rgba(212,175,55,.10) 0 2px, transparent 3px),
+      radial-gradient(circle at 60% 10%, rgba(212,58,42,.10), transparent 40%),
+      linear-gradient(160deg,#1a1233 0%, #0e0a20 55%, #070512 100%);
+    background-size:120px 120px, 160px 160px, 100% 100%, 100% 100%;
+    display:flex; flex-direction:column; align-items:center; padding:28px 14px 48px;
+  }
+  header{text-align:center; margin-bottom:18px;}
+  .torii{font-size:15px; letter-spacing:.9em; color:var(--vermillion-light); margin-bottom:2px; text-indent:.9em;}
+  h1{
+    margin:0; font-size:clamp(30px,7.5vw,46px); font-weight:800; letter-spacing:.08em; line-height:1.25;
+    background:linear-gradient(180deg,var(--gold-pale) 15%, var(--gold) 55%, #9a7a1e 90%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+    text-shadow:0 0 34px rgba(212,175,55,.12);
+  }
+  .subtitle{margin-top:6px; font-size:13px; letter-spacing:.35em; color:var(--muted); text-indent:.35em;}
+  .card{
+    width:100%; max-width:580px; background:linear-gradient(180deg,var(--card2),var(--card));
+    border:1px solid rgba(212,175,55,.65); border-radius:14px; padding:26px 22px 24px;
+    box-shadow:0 0 0 4px rgba(212,175,55,.08), 0 24px 60px rgba(0,0,0,.55), inset 0 0 60px rgba(212,175,55,.05);
+  }
+  .tabs{display:flex; gap:8px; margin-bottom:22px;}
+  .tab{
+    flex:1; padding:11px 4px; text-align:center; cursor:pointer; border-radius:9px; font-size:15px; letter-spacing:.12em;
+    border:1px solid rgba(212,175,55,.35); color:var(--muted); background:rgba(0,0,0,.25); transition:all .25s;
+    font-family:inherit;
+  }
+  .tab.active{
+    color:#1c1206; font-weight:700;
+    background:linear-gradient(180deg,var(--gold-light),var(--gold));
+    box-shadow:0 4px 18px rgba(212,175,55,.35);
+  }
+  label.field{display:block; margin:0 0 15px;}
+  label.field span{display:block; font-size:13px; letter-spacing:.25em; color:var(--gold-light); margin-bottom:7px;}
+  input[type=text]{
+    width:100%; padding:13px 14px; font-size:18px; color:var(--paper); font-family:inherit;
+    background:rgba(0,0,0,.4); border:1px solid rgba(212,175,55,.4); border-radius:9px; outline:none; transition:border .2s, box-shadow .2s;
+  }
+  input[type=text]:focus{border-color:var(--gold); box-shadow:0 0 0 3px rgba(212,175,55,.22);}
+  .two-col{display:flex; gap:12px;}
+  .two-col label.field{flex:1;}
+  .vs{display:flex; align-items:center; justify-content:center; margin:2px 0 12px; color:var(--vermillion-light); font-size:20px; letter-spacing:.4em; text-indent:.4em;}
+  button.main{
+    width:100%; padding:16px; margin-top:6px; font-size:19px; font-weight:800; letter-spacing:.3em; text-indent:.3em;
+    font-family:inherit; color:#fff; cursor:pointer; border:none; border-radius:10px;
+    background:linear-gradient(180deg,var(--vermillion-light),var(--vermillion) 60%,#a82618);
+    box-shadow:0 8px 26px rgba(212,58,42,.4), inset 0 1px 0 rgba(255,255,255,.35); transition:transform .12s, filter .2s;
+  }
+  button.main:hover{filter:brightness(1.1);}
+  button.main:active{transform:scale(.98);}
+  button.ghost{
+    width:100%; padding:10px; margin-top:14px; font-size:13px; letter-spacing:.2em; text-indent:.2em; font-family:inherit;
+    color:var(--muted); background:transparent; border:1px solid rgba(185,174,214,.35); border-radius:9px; cursor:pointer;
+  }
+  button.ghost:hover{color:var(--text); border-color:var(--gold);}
+  .result{display:none; margin-top:24px; text-align:center; animation:fadeUp .7s ease both;}
+  .result.show{display:block;}
+  .pair{font-size:16px; letter-spacing:.06em; color:var(--paper); line-height:1.9;}
+  .pair .tot{display:inline-block; margin:0 2px; padding:1px 9px; border:1px solid rgba(212,175,55,.5); border-radius:20px; font-size:13px; color:var(--gold-light);}
+  .score{font-size:96px; font-weight:800; line-height:1.05; margin:6px 0 0;
+    background:linear-gradient(180deg,var(--gold-pale),var(--gold) 60%,#9a7a1e);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;}
+  .score small{font-size:34px;}
+  .rank{display:inline-block; margin-top:6px; padding:5px 20px; font-size:17px; font-weight:700; letter-spacing:.4em; text-indent:.4em;
+    color:#fff; background:linear-gradient(180deg,var(--vermillion-light),var(--vermillion)); border-radius:6px; box-shadow:0 4px 16px rgba(212,58,42,.4);}
+  .advice{margin:16px auto 0; max-width:460px; font-size:15px; line-height:2; color:var(--text); text-align:left;
+    border-top:1px dashed rgba(212,175,55,.4); padding-top:14px;}
+  .restored{display:none; margin-top:12px; font-size:12px; letter-spacing:.15em; color:var(--muted);}
+  .restored.show{display:block;}
+  .shake{animation:shake .55s ease;}
+  @keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-9px) rotate(-.6deg)}35%{transform:translateX(8px) rotate(.6deg)}55%{transform:translateX(-6px)}75%{transform:translateX(5px)}90%{transform:translateX(-2px)}}
+  @keyframes fadeUp{from{opacity:0; transform:translateY(16px)}to{opacity:1; transform:translateY(0)}}
+  .gokaku{display:none; margin-top:24px; animation:fadeUp .7s ease both;}
+  .gokaku.show{display:block;}
+  .gokaku-name{text-align:center; font-size:19px; letter-spacing:.15em; margin-bottom:14px; color:var(--paper);}
+  .gokaku-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:9px;}
+  .gcell{background:rgba(0,0,0,.35); border:1px solid rgba(212,175,55,.35); border-radius:10px; padding:12px 6px 10px; text-align:center;}
+  .gcell .gname{font-size:12px; letter-spacing:.3em; color:var(--muted); text-indent:.3em;}
+  .gcell .gnum{font-size:34px; font-weight:800; color:var(--gold-light); line-height:1.2;}
+  .gcell .gluck{font-size:13px; font-weight:700; padding:1px 10px; border-radius:12px; display:inline-block; margin-top:2px;}
+  .luck-daikichi{background:var(--vermillion); color:#fff;}
+  .luck-kichi{background:rgba(212,175,55,.85); color:#1c1206;}
+  .luck-hankichi{background:rgba(212,175,55,.3); color:var(--gold-pale);}
+  .luck-hankyo{background:rgba(140,140,170,.35); color:#d8d4ea;}
+  .luck-kyo{background:rgba(70,70,100,.6); color:#a9a4c4;}
+  .gcomment{margin-top:8px; font-size:11.5px; line-height:1.7; color:var(--muted); min-height:3.2em;}
+  .sougo{margin-top:16px; text-align:center; font-size:15px; line-height:2; color:var(--text);
+    border-top:1px dashed rgba(212,175,55,.4); padding-top:12px;}
+  .history{width:100%; max-width:580px; margin-top:22px;}
+  .history h2{font-size:14px; letter-spacing:.4em; color:var(--gold-light); text-align:center; margin:0 0 10px; text-indent:.4em;}
+  .history ul{list-style:none; margin:0; padding:0;}
+  .history li{
+    display:flex; justify-content:space-between; align-items:center; gap:8px; cursor:pointer;
+    background:rgba(28,21,51,.75); border:1px solid rgba(212,175,55,.25); border-radius:9px;
+    padding:10px 14px; margin-bottom:8px; font-size:14px; transition:border .2s;
+  }
+  .history li:hover{border-color:var(--gold);}
+  .history .hscore{font-size:20px; font-weight:800; color:var(--gold-light); white-space:nowrap;}
+  .history .hdate{font-size:11px; color:var(--muted); white-space:nowrap;}
+  .history .empty{text-align:center; color:var(--muted); font-size:13px; padding:8px 0; cursor:default;}
+  footer{margin-top:26px; text-align:center; font-size:11.5px; letter-spacing:.25em; color:rgba(185,174,214,.6); line-height:2;}
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+<header>
+  <div class="torii">⛩ ⛩ ⛩</div>
+  <h1>姓名判断・相性診断</h1>
+  <div class="subtitle">― 運命の紐解き ―</div>
+</header>
+
+<div class="card" id="card">
+  <div class="tabs">
+    <button class="tab active" id="tabAishou" type="button">相性診断</button>
+    <button class="tab" id="tabSeimei" type="button">姓名判断（五格）</button>
+  </div>
+
+  <!-- ===== 相性診断モード ===== -->
+  <div id="modeAishou">
+    <label class="field"><span>男性の名前</span>
+      <input type="text" id="maleName" placeholder="例：山田 太郎" autocomplete="off">
+    </label>
+    <div class="vs">×</div>
+    <label class="field"><span>女性の名前</span>
+      <input type="text" id="femaleName" placeholder="例：佐藤 葵" autocomplete="off">
+    </label>
+    <button class="main" id="btnAishou" type="button">相性を診断する</button>
+
+    <div class="result" id="aishouResult">
+      <div class="pair" id="pairText"></div>
+      <div class="score"><span id="scoreNum">0</span><small>%</small></div>
+      <div><span class="rank" id="rankText"></span></div>
+      <p class="advice" id="adviceText"></p>
+    </div>
+    <div class="restored" id="restoredNote">前回の診断結果を復元しました</div>
+    <button class="ghost" id="btnClear" type="button">保存データを消去する</button>
+  </div>
+
+  <!-- ===== 姓名判断モード（五格） ===== -->
+  <div id="modeSeimei" class="hidden">
+    <div class="two-col">
+      <label class="field"><span>姓</span>
+        <input type="text" id="seiInput" placeholder="例：山田" autocomplete="off">
+      </label>
+      <label class="field"><span>名</span>
+        <input type="text" id="meiInput" placeholder="例：太郎" autocomplete="off">
+      </label>
+    </div>
+    <button class="main" id="btnSeimei" type="button">姓名を判断する</button>
+
+    <div class="gokaku" id="gokakuResult">
+      <div class="gokaku-name" id="gokakuName"></div>
+      <div class="gokaku-grid" id="gokakuGrid"></div>
+      <p class="sougo" id="sougoText"></p>
+    </div>
+  </div>
+</div>
+
+<div class="history" id="historyBox">
+  <h2>過去の診断履歴</h2>
+  <ul id="historyList"></ul>
+</div>
+
+<footer>
+  AI活用Webアプリ開発 実践課題<br>
+  画数辞書内蔵 ・ localStorage保存対応 ・ 制作：GONG LUOHONG
+</footer>
+
+<script>
+"use strict";
+/* =========================================================
+   漢字・ひらがな画数辞書（Step 4：辞書オブジェクト）
+   自分の名前の漢字はここに書き加えてカスタマイズできます。
+   ========================================================= */
+const STROKE_DICT = {
+  /* ひらがな */
+  "あ":3,"い":2,"う":2,"え":2,"お":3,"か":3,"き":3,"く":1,"け":3,"こ":2,
+  "さ":3,"し":1,"す":2,"せ":3,"そ":1,"た":4,"ち":2,"つ":1,"て":1,"と":2,
+  "な":4,"に":3,"ぬ":2,"ね":2,"の":1,"は":3,"ひ":1,"ふ":4,"へ":1,"ほ":4,
+  "ま":3,"み":3,"む":3,"め":2,"も":3,"や":3,"ゆ":3,"よ":2,"ら":2,"り":2,
+  "る":1,"れ":2,"ろ":1,"わ":2,"を":3,"ん":1,
+  /* よく使われる苗字の漢字 */
+  "佐":8,"藤":18,"鈴":13,"木":5,"高":10,"橋":16,"伊":6,"田":5,"山":3,"川":3,
+  "中":4,"林":8,"森":12,"石":5,"金":8,"清":11,"水":4,"渡":12,"辺":5,"加":5,
+  "近":7,"井":4,"上":3,"下":3,"小":3,"大":3,"野":11,"原":10,
+  "長":8,"谷":7,"岡":8,"崎":11,"松":8,"竹":6,"梅":10,"鶴":21,"亀":11,"吉":6,
+  "村":7,"西":6,"東":8,"南":9,"北":5,"前":9,"後":9,"内":4,"外":5,
+  "安":6,"室":9,"宮":10,"富":12,"口":3,"島":10,"本":5,
+  "元":4,"池":6,"早":6,"星":9,"平":5,"新":13,
+  "坂":7,"遠":13,
+  "斎":11,"士":3,"秋":9,"柴":10,
+  /* よく使われる名前の漢字 */
+  "太":4,"郎":9,"一":1,"二":2,"三":3,"人":2,"子":3,"女":3,"男":7,"花":7,
+  "美":9,"愛":13,"心":4,"海":9,"空":6,"翔":12,"葉":12,"結":12,"優":17,"咲":9,
+  "桜":10,"葵":12,"陽":12,"翼":17,"蓮":13,"凛":15,"悠":11,"春":9,"夏":10,"冬":5,
+  "雪":11,"光":6,"輝":15,"健":11,"康":11,"正":5,"和":8,"洋":9,"博":12,"志":7,
+  "明":8,"昌":8,"晶":12,"智":12,"仁":4,"信":9,"雄":12,"英":8,"茂":9,"修":10,
+  "進":11,"隆":11,"学":8,"文":4,"武":8,"豊":13,"実":8,"守":6,"宏":7,"真":10,
+  "理":11,"恵":10,"香":9,"奈":8,"菜":11,"麻":11,"里":7,"沙":7,"也":3,"哉":9,
+  "樹":16,"隼":10,"颯":14,"奏":9,"汰":7,"渚":11,"澪":16,"紬":11,"杏":7,"栞":10,
+  "楓":13,"椿":13,"桃":10,"梨":11,"柚":9,"苺":8,"菫":11,"蘭":19,"芽":8,"依":8,
+  "織":18,"音":9,"羽":6,"輔":14,"介":4,"佑":7,"亮":9,"圭":6,
+  "拓":8,"陸":11,"蒼":13,"碧":14,"瑛":12,"璃":15,"瑠":14,"玲":9,
+  "玖":7,"旺":8,"航":10,"舵":11,"湊":12,"港":12,"凪":6,"汐":6,"波":8,
+  "凜":15,"熙":13,"燕":16,"燦":17,"燿":18,"耀":20,"朔":10,"望":11,"晴":12,"暖":13,
+  "暁":12,"晃":10,"昇":8,"龍":16,"虎":8,"獅":13,"凰":11,"鳳":14,"麟":24,
+  "勇":9,"力":2,"功":5,"勲":15,"勝":12,"匠":6,"司":5,"史":5,"吾":7,"哲":10,
+  "啓":11,"善":12,"嘉":14,"壮":6,"天":4,"奨":13,
+  "央":5,"良":7,"色":6,
+  "々":1,"乃":2,"莉":10,"茉":8,
+  "七":2,"八":2,"九":2,"十":2,"百":6,"千":3,"万":3,"円":4,"年":6,"月":4,
+  "日":4,"火":4,"土":3,"王":4,"玉":5,"生":5,"白":5,"赤":7,"青":8,"黒":11,
+  "今":4,"古":5,"左":5,"右":5,"雨":8,"雲":12,"月":4,"風":9,
+  "夢":13,"希":7,"来":7,"世":5,"界":9,"永":5,"久":3,
+  "佳":8,"京":8,"亨":7,"俊":9,"保":9,
+  
+  
+  "宗":8,"宝":8,"家":10,"寛":13,"将":10,"尊":12,
+};
+
+/* 姓名判断の吉凶（熊崎式をベースにした画数評価） */
+const DAIKICHI = [11,13,15,16,21,23,24,31,32,35,37,39,41,45,47,48,52,57,61,63,65,67,68,81];
+const KICHI    = [1,3,5,6,7,8,17,18,25,29,33,38,42,49,51,55,58,71,73,75,77,78];
+const HANKICHI = [26,27,30,36,40,43,50,53,56,59,60,69,70,72,74,79,80];
+const HANKYO   = [2,4,9,10,12,14,19,20,22,28,34,44,46,54,62,64,66,76];
+/* 上記いずれにも属さない数（59を除く残り）は「凶」 */
+const LUCK_COMMENT = {
+  1:"万物の始まり。独立心と統率力に恵まれる根源の数。",
+  3:"知性と行動力が冴える、発展の数。",
+  5:"福徳円満。家庭も仕事も安定する中心の数。",
+  6:"恵まれた環境で徳を積む、安定の数。",
+  7:"独立独歩。強い意志で道を切り開く数。",
+  8:"堅実に努力を積み重ね、着実に実を結ぶ数。",
+  11:"着実に立身出世していく、再興・発展の数。",
+  13:"知勇兼備。才気にあふれ頭角を現す数。",
+  15:"福寿円満。人望厚く、幸福が長く続く数。",
+  16:"徳望の数。人を惹きつけ、名声と財を得る。",
+  17:"剛毅果断。困難を乗り越える実行力の数。",
+  18:"意志強固。着実に財産と地位を築く数。",
+  21:"独立・首領の数。自分の力で成功をつかむ。",
+  23:"権威と進展。大きな発展と名声の数。",
+  24:"金運と家庭運に恵まれる、富貴の数。",
+  25:"英知と才覚。独自の感性が光る数。",
+  29:"知謀と順調。計画が実を結ぶ知性の数。",
+  31:"仁徳の数。誠実さで信頼と繁栄を得る。",
+  32:"僥倖の数。思わぬ幸運と良縁に恵まれる。",
+  33:"剛毅にして隆盛。大きな成功の数。",
+  35:"平穏と知性。穏やかに発展する数。",
+  37:"忠実で権威あり。独立して成功する数。",
+  39:"富貴長寿。財と名誉に恵まれる数。",
+  41:"実力を発揮し、名声を得る大成の数。",
+  45:"順風満帆。知恵と度量で道が開ける数。",
+  47:"開花の数。努力が実り大きな実を得る。",
+  48:"徳と知恵を兼ね備え、繁栄する数。"
+};
+const GUIDE_LUCKY = [11,13,15,16,21,23,24,31,32]; /* テキスト指定の吉数 */
+
+function norm81(n){ let x = n; while (x > 81) x -= 80; return x; }
+function luckOf(n){
+  const x = norm81(n);
+  if (DAIKICHI.includes(x)) return {label:"大吉", cls:"luck-daikichi"};
+  if (KICHI.includes(x))    return {label:"吉",   cls:"luck-kichi"};
+  if (HANKICHI.includes(x)) return {label:"半吉", cls:"luck-hankichi"};
+  if (HANKYO.includes(x))   return {label:"半凶", cls:"luck-hankyo"};
+  return {label:"凶", cls:"luck-kyo"};
+}
+function luckComment(n){
+  const x = norm81(n);
+  if (LUCK_COMMENT[x]) return LUCK_COMMENT[x];
+  const l = luckOf(n).label;
+  if (l === "大吉") return "勢いがあり、物事が良い方向へ転がりやすい強運の数。";
+  if (l === "吉")   return "安定と発展のバランスが取れた、堅実な吉数。";
+  if (l === "半吉") return "努力次第で道が開ける数。焦らず積み重ねが鍵。";
+  if (l === "半凶") return "波はあるが、慎重さが運を引き寄せる数。";
+  return "困難に学ぶ数。粘り強さが最大の武器になる。";
+}
+/* 1文字の画数：辞書に無ければ文字コードから仮画数（5〜12画）を決定的に割り当てる */
+function strokeOf(ch){
+  if (Object.prototype.hasOwnProperty.call(STROKE_DICT, ch) && STROKE_DICT[ch] > 0) return STROKE_DICT[ch];
+  return 5 + (ch.codePointAt(0) % 8);
+}
+function cleanName(s){ return (s || "").replace(/[\s　]+/g, ""); }
+function totalStrokes(name){
+  const n = cleanName(name);
+  let sum = 0;
+  for (const ch of n) sum += strokeOf(ch);
+  return sum;
+}
+function hashStr(s){ let h = 0; for (const ch of s) h = (h * 31 + ch.codePointAt(0)) >>> 0; return h; }
+</script>
+
+<script>
+"use strict";
+/* ================= 相性スコア計算 ================= */
+function compatScore(totalA, totalB, nameA, nameB){
+  let score = 52;
+  const na = norm81(totalA), nb = norm81(totalB);
+  if (GUIDE_LUCKY.includes(na)) score += 13;
+  if (GUIDE_LUCKY.includes(nb)) score += 13;
+  if (DAIKICHI.includes(na)) score += 4;
+  if (DAIKICHI.includes(nb)) score += 4;
+  const diff = Math.abs(totalA - totalB);
+  if (diff <= 2) score += 8; else if (diff <= 5) score += 5; else if (diff <= 10) score += 2;
+  score += hashStr(cleanName(nameA) + "×" + cleanName(nameB)) % 7;
+  return Math.max(40, Math.min(100, score));
+}
+const ADVICE = [
+  {min:90, rank:"運命の相手", texts:[
+    "総格同士が強く響き合う、まさに運命的な組み合わせです。お互いの吉数が重なり合い、長所を引き出し合える関係。一緒にいるほど運気が上がっていく相性です。",
+    "文句なしの最高相性。価値観のリズムが自然と合う二人です。この縁を大切にすれば、人生の大きな転機も味方に変えていけます。"]},
+  {min:80, rank:"最高の相性", texts:[
+    "とても相性の良い二人です。画数の調和が取れていて、支え合うことで一人では届かない場所まで進めます。素直な感謝の言葉が、さらに絆を深めます。",
+    "呼吸の合うパートナー同士。意見がぶつかっても、それが成長の種になる好相性です。記念日などの節目を大切にすると運気が安定します。"]},
+  {min:65, rank:"好相性", texts:[
+    "穏やかに長続きする、堅実な相性です。派手さはなくても信頼を積み重ねていける二人。共通の趣味や目標を持つと、さらに相性が育っていきます。",
+    "お互いの不足を自然に補い合える相性です。焦らず、日常の小さな気遣いを続けることが開運の鍵になります。"]},
+  {min:50, rank:"まずまず", texts:[
+    "良いところと課題が半々という、育てがいのある相性です。違いを「欠点」ではなく「個性」と捉えられるかが分かれ目。話し合いの時間を作りましょう。",
+    "波はありますが、決して悪くない相性です。相手のペースを尊重する余裕を持つと、数字以上の好相性に変わっていきます。"]},
+  {min:0, rank:"努力で開花", texts:[
+    "今はまだ歯車が噛み合いにくい相性ですが、それは伸びしろの裏返し。総格の差は「役割分担がはっきりしている」とも読めます。焦らず信頼を積みましょう。",
+    "個性が強い者同士の相性です。ぶつかり合いは刺激にもなります。相手の得意分野を認め合えたとき、この相性は大きく化けます。"]}
+];
+function adviceFor(score, nameA, nameB){
+  const band = ADVICE.find(b => score >= b.min);
+  const idx = hashStr(cleanName(nameA) + cleanName(nameB) + score) % band.texts.length;
+  return {rank: band.rank, text: band.texts[idx]};
+}
+
+/* ================= localStorage（Step 3） ================= */
+const KEY_LAST = "uranaiLastResult";
+const KEY_HIST = "uranaiHistory";
+function loadLast(){ try { return JSON.parse(localStorage.getItem(KEY_LAST)); } catch(e){ return null; } }
+function loadHist(){ try { return JSON.parse(localStorage.getItem(KEY_HIST)) || []; } catch(e){ return []; } }
+function saveAll(last, hist){
+  try {
+    localStorage.setItem(KEY_LAST, JSON.stringify(last));
+    localStorage.setItem(KEY_HIST, JSON.stringify(hist));
+  } catch(e) { /* 保存できない環境では画面表示のみで継続 */ }
+}
+function safeRemove(key){ try { localStorage.removeItem(key); } catch(e){} }
+
+/* ================= 画面制御 ================= */
+const $ = id => document.getElementById(id);
+function countUp(el, target){
+  let cur = 0; const step = Math.max(1, Math.round(target / 34));
+  const timer = setInterval(() => {
+    cur += step; if (cur >= target){ cur = target; clearInterval(timer); }
+    el.textContent = cur;
+  }, 30);
+}
+function showAishouResult(data, animate){
+  $("pairText").innerHTML =
+    escapeHtml(data.male) + " さん <span class='tot'>総格：" + data.totalMale + "画</span> × " +
+    escapeHtml(data.female) + " さん <span class='tot'>総格：" + data.totalFemale + "画</span>";
+  const adv = adviceFor(data.score, data.male, data.female);
+  $("rankText").textContent = adv.rank;
+  $("adviceText").textContent = adv.text;
+  const res = $("aishouResult");
+  res.classList.add("show");
+  if (animate){
+    const card = $("card");
+    card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+    countUp($("scoreNum"), data.score);
+  } else {
+    $("scoreNum").textContent = data.score;
+  }
+}
+function escapeHtml(s){ return s.replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function renderHistory(){
+  const hist = loadHist();
+  const ul = $("historyList");
+  ul.innerHTML = "";
+  if (!hist.length){
+    const li = document.createElement("li");
+    li.className = "empty"; li.textContent = "まだ履歴がありません。診断するとここに残ります。";
+    ul.appendChild(li); return;
+  }
+  hist.forEach((h, i) => {
+    const li = document.createElement("li");
+    li.innerHTML = "<span>" + escapeHtml(h.male) + " × " + escapeHtml(h.female) + "</span>" +
+      "<span class='hdate'>" + escapeHtml(h.date) + "</span>" +
+      "<span class='hscore'>" + h.score + "%</span>";
+    li.addEventListener("click", () => {
+      $("maleName").value = h.male; $("femaleName").value = h.female;
+      showAishouResult(h, false);
+      $("restoredNote").classList.remove("show");
+      window.scrollTo({top: 0, behavior: "smooth"});
+    });
+    ul.appendChild(li);
+  });
+}
+
+$("btnAishou").addEventListener("click", () => {
+  const male = $("maleName").value.trim();
+  const female = $("femaleName").value.trim();
+  if (!male || !female){ alert("男性と女性、両方の名前を入力してください。"); return; }
+  const totalMale = totalStrokes(male);
+  const totalFemale = totalStrokes(female);
+  const score = compatScore(totalMale, totalFemale, male, female);
+  const data = {male, female, totalMale, totalFemale, score,
+    date: new Date().toLocaleString("ja-JP", {month:"numeric", day:"numeric", hour:"2-digit", minute:"2-digit"})};
+  const hist = loadHist();
+  hist.unshift(data);
+  saveAll(data, hist.slice(0, 10));   /* 履歴は最大10件 */
+  $("restoredNote").classList.remove("show");
+  showAishouResult(data, true);
+  renderHistory();
+});
+
+$("btnClear").addEventListener("click", () => {
+  safeRemove(KEY_LAST);
+  safeRemove(KEY_HIST);
+  $("maleName").value = ""; $("femaleName").value = "";
+  $("aishouResult").classList.remove("show");
+  $("restoredNote").classList.remove("show");
+  renderHistory();
+});
+
+/* ================= 姓名判断（五格・Step 5 拡張） ================= */
+function strokesOf(str){ const arr = []; for (const ch of cleanName(str)) arr.push(strokeOf(ch)); return arr; }
+function calcGokaku(sei, mei){
+  const s = strokesOf(sei), m = strokesOf(mei);
+  const sumS = s.reduce((a,b)=>a+b,0), sumM = m.reduce((a,b)=>a+b,0);
+  const ten  = sumS + (s.length === 1 ? 1 : 0);           /* 天格（姓が1文字なら+1） */
+  const jin  = s[s.length-1] + m[0];                      /* 人格 */
+  const chi  = sumM + (m.length === 1 ? 1 : 0);           /* 地格（名が1文字なら+1） */
+  const sou  = sumS + sumM;                               /* 総格 */
+  let gai = sou - jin;                                    /* 外格 */
+  if (s.length === 1) gai += 1;
+  if (m.length === 1) gai += 1;
+  return {天格: ten, 人格: jin, 地格: chi, 外格: gai, 総格: sou};
+}
+$("btnSeimei").addEventListener("click", () => {
+  const sei = $("seiInput").value.trim();
+  const mei = $("meiInput").value.trim();
+  if (!sei || !mei){ alert("姓と名の両方を入力してください。"); return; }
+  const g = calcGokaku(sei, mei);
+  $("gokakuName").textContent = sei + " " + mei + " さんの五格";
+  const grid = $("gokakuGrid");
+  grid.innerHTML = "";
+  const roles = {天格:"家系・先祖運", 人格:"性格・主運", 地格:"基礎・若年運", 外格:"対人・社交運", 総格:"総合・晩年運"};
+  for (const key of ["天格","人格","地格","外格","総格"]){
+    const lk = luckOf(g[key]);
+    const cell = document.createElement("div");
+    cell.className = "gcell";
+    cell.innerHTML = "<div class='gname'>" + key + "</div>" +
+      "<div class='gnum'>" + g[key] + "</div>" +
+      "<span class='gluck " + lk.cls + "'>" + lk.label + "</span>" +
+      "<div class='gcomment'>" + roles[key] + "<br>" + luckComment(g[key]) + "</div>";
+    grid.appendChild(cell);
+  }
+  const souLuck = luckOf(g["総格"]);
+  $("sougoText").innerHTML = "総格 " + g["総格"] + "画は「" + souLuck.label + "」。" + luckComment(g["総格"]) +
+    "<br>人格 " + g["人格"] + "画（" + luckOf(g["人格"]).label + "）が人生の主運を司ります。";
+  $("gokakuResult").classList.add("show");
+  const card = $("card");
+  card.classList.remove("shake"); void card.offsetWidth; card.classList.add("shake");
+});
+
+/* ================= タブ切替 ================= */
+function switchMode(seimei){
+  $("tabAishou").classList.toggle("active", !seimei);
+  $("tabSeimei").classList.toggle("active", seimei);
+  $("modeAishou").classList.toggle("hidden", seimei);
+  $("modeSeimei").classList.toggle("hidden", !seimei);
+  $("historyBox").classList.toggle("hidden", seimei);
+}
+$("tabAishou").addEventListener("click", () => switchMode(false));
+$("tabSeimei").addEventListener("click", () => switchMode(true));
+
+/* ================= 起動時：前回結果の自動復元（Step 3） ================= */
+(function init(){
+  const last = loadLast();
+  if (last){
+    $("maleName").value = last.male;
+    $("femaleName").value = last.female;
+    showAishouResult(last, false);
+    $("restoredNote").classList.add("show");
+  }
+  renderHistory();
+})();
+</script>
+</body>
+</html>
